@@ -14,16 +14,21 @@ DoomHost::~DoomHost()
         d.reset();
 }
 
-void DoomHost::start (const juce::File& wad, int numPlayers)
+void DoomHost::start (const juce::File& wad, const GameConfig& config)
 {
-    numPlayers = juce::jlimit (1, kNumPlayers, numPlayers);
+    if (running)
+        return;
 
-    // numPlayers > 1 => each instance is one player of a local deathmatch,
-    // kept in lockstep by the fake-network arbiter. Player 0 renders music.
-    for (int i = 0; i < numPlayers; ++i)
+    const auto setup = config.toSetup();
+
+    // Every slot is one player of the same kNumPlayers-way session, kept in
+    // lockstep by the arbiter. Player 0 renders music; the rest are -nomusic.
+    for (int i = 0; i < kNumPlayers; ++i)
         instances[(size_t) i]->startGame (wad, /*playerIndex*/ i,
-                                          /*numPlayers*/ numPlayers,
-                                          /*playMusic*/ i == 0);
+                                          /*numPlayers*/ kNumPlayers,
+                                          /*playMusic*/ i == 0,
+                                          setup);
+    running = true;
 }
 
 juce::Image DoomHost::getScreen (int player)
@@ -40,6 +45,6 @@ gin::DoomAudioEngine* DoomHost::audioEngine (int player)
 
 void DoomHost::postKey (int player, int key, bool down)
 {
-    if (juce::isPositiveAndBelow (player, kNumPlayers))
+    if (running && juce::isPositiveAndBelow (player, kNumPlayers))
         instances[(size_t) player]->addEvent (key, down);
 }

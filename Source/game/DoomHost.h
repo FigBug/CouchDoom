@@ -6,13 +6,16 @@
 #include <juce_core/juce_core.h>
 #include <gin_doom/gin_doom.h>
 
+#include "GameConfig.h"
+
 //==============================================================================
 // Owns the four Doom instances ("four computers"). Each is a fully independent
-// simulation (its own data_t) running on its own thread. Player 0 renders
-// music; players 1-3 are SFX-only.
+// simulation (its own data_t) running on its own thread, kept in lockstep by
+// the fake-network arbiter (couch.c) into one deathmatch/co-op session. Player
+// 0 renders music; players 1-3 are SFX-only.
 //
-// For now the four run as independent games; the fake-network arbiter (next
-// phase) synchronises them into a single deathmatch.
+// All four slots always run as real Doom players. Slots without a controller
+// are simply idle ("AI" on the title screen) until real bot AI is added.
 //==============================================================================
 class DoomHost
 {
@@ -22,11 +25,11 @@ public:
     DoomHost();
     ~DoomHost();
 
-    // Launch numPlayers instances on the given IWAD file (player 0 with music).
-    // NOTE: numPlayers > 1 is blocked until the WAD subsystem (w_wad.c
-    // lumpinfo/numlumps) is moved into data_t — today it is a global that all
-    // instances would clobber. Start 1 for now; flip to 4 once that lands.
-    void start (const juce::File& wad, int numPlayers = kNumPlayers);
+    // Launch the four instances for one session with the given match settings.
+    void start (const juce::File& wad, const GameConfig& config);
+
+    // True once start() has been called (a session is running).
+    bool isRunning() const { return running; }
 
     // Latest framebuffer for a player (640x400), for the 2x2 grid.
     juce::Image getScreen (int player);
@@ -34,14 +37,15 @@ public:
     // The player's audio engine, for the mixer.
     gin::DoomAudioEngine* audioEngine (int player);
 
-    // Feed a key event to one player's instance (temporary keyboard path;
-    // replaced by controllers).
+    // Feed a Doom KEY_* event to one player's instance (from controllers /
+    // keyboard). Ignored if no session is running.
     void postKey (int player, int key, bool down);
 
     static constexpr int count() { return kNumPlayers; }
 
 private:
     std::array<std::unique_ptr<gin::Doom>, kNumPlayers> instances;
+    bool running = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DoomHost)
 };
