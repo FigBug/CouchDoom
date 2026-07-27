@@ -18,8 +18,12 @@ void DoomHost::start (const juce::File& wad, int numPlayers)
 {
     numPlayers = juce::jlimit (1, kNumPlayers, numPlayers);
 
+    // numPlayers > 1 => each instance is one player of a local deathmatch,
+    // kept in lockstep by the fake-network arbiter. Player 0 renders music.
     for (int i = 0; i < numPlayers; ++i)
-        instances[(size_t) i]->startGame (wad, /* playMusic */ i == 0);
+        instances[(size_t) i]->startGame (wad, /*playerIndex*/ i,
+                                          /*numPlayers*/ numPlayers,
+                                          /*playMusic*/ i == 0);
 }
 
 juce::Image DoomHost::getScreen (int player)
