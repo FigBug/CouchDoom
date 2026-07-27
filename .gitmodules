@@ -1,0 +1,10 @@
+[submodule "modules/juce"]
+	path = modules/juce
+	url = https://github.com/juce-framework/JUCE.git
+[submodule "modules/gin"]
+	path = modules/gin
+	url = git@github.com:FigBug/Gin.git
+[submodule "modules/Gin_Doom"]
+	path = modules/Gin_Doom
+	url = git@github.com:FigBug/Gin_Doom.git
+	branch = multi-instance-structs
