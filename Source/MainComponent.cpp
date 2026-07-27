@@ -7,13 +7,15 @@
 MainComponent::MainComponent()
 {
     setWantsKeyboardFocus (true);
-    setSize (kDoomWidth * 2, kDoomHeight * 2);   // 2x2 of 640x400
 
     wad = extractWad();
 
     title = std::make_unique<TitleScreen> (controllers);
     addAndMakeVisible (*title);
     title->onStart = [this] (const GameConfig& c) { startMatch (c); };
+
+    // Size last, so the resized() it triggers lays out the (now-created) title.
+    setSize (kDoomWidth * 2, kDoomHeight * 2);   // 2x2 of 640x400
 
     startTimerHz (kTickHz);
 }
