@@ -55,8 +55,8 @@ void TitleScreen::tick()
             set (pad->isButtonDown (B::start),    5);
         }
 
-        const juce::uint32 rising = mask & ~prevMask[p];
-        prevMask[p] = mask;
+        const juce::uint32 rising = mask & ~prevMask[(size_t) p];
+        prevMask[(size_t) p] = mask;
 
         if (rising & (1u << 0)) moveSelection (-1);
         if (rising & (1u << 1)) moveSelection ( 1);

@@ -51,6 +51,14 @@ foreach (module_name IN ITEMS gin gin_controllers gin_dsp gin_simd gin_graphics 
     set_property (TARGET "${module_name}" APPEND PROPERTY LABELS Gin)
 endforeach()
 
+# Gin module unity files compile into the app target and would otherwise inherit
+# juce_recommended_warning_flags; keep those warnings for our Source/ only.
+file (GLOB gin_module_sources
+    ${CMAKE_CURRENT_LIST_DIR}/modules/gin/modules/*/gin_*.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/modules/gin/modules/*/gin_*.mm)
+set_source_files_properties (${gin_module_sources} PROPERTIES COMPILE_OPTIONS
+    "$<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>")
+
 # The per-instance Doom engine (module lives inside the Gin_Doom repo).
 juce_add_module ("${CMAKE_CURRENT_LIST_DIR}/modules/Gin_Doom/modules/gin_doom")
 set_property (TARGET gin_doom APPEND PROPERTY LABELS Gin)

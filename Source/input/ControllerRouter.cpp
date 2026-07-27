@@ -33,6 +33,7 @@ void ControllerRouter::route (DoomHost& host)
 
     for (int p = 0; p < kNumPlayers; ++p)
     {
+        const auto i = (size_t) p;
         auto* c = pad (p);
         std::set<int> now;
 
@@ -61,31 +62,31 @@ void ControllerRouter::route (DoomHost& host)
             // Weapon cycle on bumper rising edge (momentary down+up tap).
             const bool lb = b (Button::leftShoulder);
             const bool rb = b (Button::rightShoulder);
-            if (rb && ! prevRB[p])
+            if (rb && ! prevRB[i])
             {
-                weapon[p] = weapon[p] % 7 + 1;
-                host.postKey (p, '0' + weapon[p], true);
-                host.postKey (p, '0' + weapon[p], false);
+                weapon[i] = weapon[i] % 7 + 1;
+                host.postKey (p, '0' + weapon[i], true);
+                host.postKey (p, '0' + weapon[i], false);
             }
-            if (lb && ! prevLB[p])
+            if (lb && ! prevLB[i])
             {
-                weapon[p] = (weapon[p] + 5) % 7 + 1;
-                host.postKey (p, '0' + weapon[p], true);
-                host.postKey (p, '0' + weapon[p], false);
+                weapon[i] = (weapon[i] + 5) % 7 + 1;
+                host.postKey (p, '0' + weapon[i], true);
+                host.postKey (p, '0' + weapon[i], false);
             }
-            prevLB[p] = lb;
-            prevRB[p] = rb;
+            prevLB[i] = lb;
+            prevRB[i] = rb;
         }
 
         // Diff current held-key set against last frame -> up/down events.
         for (int k : now)
-            if (down[p].find (k) == down[p].end())
+            if (down[i].find (k) == down[i].end())
                 host.postKey (p, k, true);
 
-        for (int k : down[p])
+        for (int k : down[i])
             if (now.find (k) == now.end())
                 host.postKey (p, k, false);
 
-        down[p] = std::move (now);
+        down[i] = std::move (now);
     }
 }
