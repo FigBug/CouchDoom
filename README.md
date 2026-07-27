@@ -83,11 +83,16 @@ CouchDoom/
 - [x] **App shell** — `DoomHost` (owns the instances), `SoundEngine` (mixes the
       engines, player 0 music via `gin::Doom` `playMusic`), `MainComponent`
       (2×2 grid render, WAD extract). Runs **1 instance today**.
-- [ ] **Blocker for 4 instances — de-globalize the WAD**: `w_wad.c` still keeps
-      `lumpinfo`/`numlumps`/`lumphash` as globals, so four instances loading
-      the IWAD would race/duplicate the lump directory. Move them into `data_t`
-      (same treatment as `ticdata`) — a large sweep, since most `W_*` callers
-      don't take `data_t` yet. Then set `MainComponent::kActivePlayers = 4`.
+- [x] **De-globalized the WAD** (`w_wad.c` lumpinfo/numlumps/lumphash → `data_t`,
+      ~200 `W_*` sites) and the **zone heap** (`z_zone.c` mainzone → `data_t`).
+      Verified: 1 instance inits fully & cleanly; 4 instances now get past WAD
+      load + zone allocation into `R_Init` (Gin_Doom `5a97760`).
+- [ ] **Next blocker — renderer sprite/texture globals**: at 4 instances,
+      `R_InitSprites` races on shared sprite tables (`sprtemp`/`sprites`/
+      `numspritelumps` in `r_things.c`, texture tables in `r_data.c`) →
+      "multip rot" / "invalid sprite frame". Same `data_t` treatment. This is
+      a *chain* — expect a few more init-path globals after this. Then
+      `kActivePlayers = 4`.
 - [ ] **Fake-net arbiter**: per-instance deathmatch config + the lockstep tic
       exchange via `D_ReceiveTic` (see "tic exchange" above).
 - [ ] **Controllers**: 4 gamepads → per-instance input.
