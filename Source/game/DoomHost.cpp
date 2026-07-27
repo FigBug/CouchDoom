@@ -1,5 +1,14 @@
 #include "DoomHost.h"
 
+// Lockstep arbiter (couch.c). Reset before a session, shut down (to break the
+// barrier) before tearing instances down, and polled for the quit request.
+extern "C"
+{
+    void Couch_Shutdown (void);
+    void Couch_Reset (void);
+    int  Couch_QuitRequested (void);   // Doom 'boolean' is an int-sized enum
+}
+
 //==============================================================================
 DoomHost::DoomHost()
 {
@@ -9,15 +18,38 @@ DoomHost::DoomHost()
 
 DoomHost::~DoomHost()
 {
-    // unique_ptr reset stops each Doom's thread in its destructor.
+    // Break the barrier first so no instance blocks waiting for a peer that is
+    // being torn down, then stop each thread (unique_ptr reset -> ~Doom).
+    Couch_Shutdown();
     for (auto& d : instances)
         d.reset();
+}
+
+void DoomHost::stop()
+{
+    if (! running)
+        return;
+
+    Couch_Shutdown();               // wake any instance waiting at the barrier
+    for (auto& d : instances)
+        d.reset();                  // join each game thread
+    for (auto& d : instances)
+        d = std::make_unique<gin::Doom>();   // fresh instances for the next match
+
+    running = false;
+}
+
+bool DoomHost::quitRequested() const
+{
+    return Couch_QuitRequested() != 0;
 }
 
 void DoomHost::start (const juce::File& wad, const GameConfig& config)
 {
     if (running)
         return;
+
+    Couch_Reset();                  // clear arbiter state for a fresh session
 
     const auto setup = config.toSetup();
 

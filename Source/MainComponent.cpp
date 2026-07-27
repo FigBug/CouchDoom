@@ -104,12 +104,39 @@ void MainComponent::routeKeyboardToPlayer0()
 }
 
 //==============================================================================
+void MainComponent::returnToMenu()
+{
+    // Detach audio from the instances before stop() destroys them, so the audio
+    // thread never touches a dangling engine.
+    soundEngine.setEngines ({ nullptr, nullptr, nullptr, nullptr });
+    doomHost.stop();
+
+    kbDown.clear();
+    state = State::Title;
+    masterSlider.setVisible (false);
+    if (title != nullptr)
+    {
+        title->setVisible (true);
+        title->toFront (false);
+        if (isShowing())
+            title->grabKeyboardFocus();
+    }
+    repaint();
+}
+
 void MainComponent::timerCallback()
 {
     if (state == State::Title)
     {
         if (title != nullptr)
             title->tick();
+        return;
+    }
+
+    // A player chose Quit -> tear the match down and go back to the lobby.
+    if (doomHost.quitRequested())
+    {
+        returnToMenu();
         return;
     }
 
@@ -142,7 +169,11 @@ void MainComponent::paint (juce::Graphics& g)
     {
         auto img = doomHost.getScreen (i);
         if (img.isValid())
-            g.drawImage (img, quads[i].toFloat());
+            // Letterbox: keep the framebuffer's aspect ratio, centred in the
+            // quadrant, so resizing the window never stretches the view.
+            g.drawImageWithin (img, quads[i].getX(), quads[i].getY(),
+                               quads[i].getWidth(), quads[i].getHeight(),
+                               juce::RectanglePlacement::centred);
 
         g.setColour (juce::Colours::darkgrey);
         g.drawRect (quads[i]);

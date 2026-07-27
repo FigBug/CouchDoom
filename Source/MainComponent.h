@@ -36,6 +36,7 @@ private:
 
     void timerCallback() override;
     void startMatch (const GameConfig& config);
+    void returnToMenu();
     void routeKeyboardToPlayer0();
     juce::File extractWad();
 

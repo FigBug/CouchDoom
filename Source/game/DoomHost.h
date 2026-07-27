@@ -28,8 +28,15 @@ public:
     // Launch the four instances for one session with the given match settings.
     void start (const juce::File& wad, const GameConfig& config);
 
+    // Tear the current session down and recreate fresh instances, ready for the
+    // next start() (used to return to the menu).
+    void stop();
+
     // True once start() has been called (a session is running).
     bool isRunning() const { return running; }
+
+    // True if a player selected Quit; the host should return to the menu.
+    bool quitRequested() const;
 
     // Latest framebuffer for a player (640x400), for the 2x2 grid.
     juce::Image getScreen (int player);
