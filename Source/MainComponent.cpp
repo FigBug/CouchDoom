@@ -13,6 +13,8 @@ MainComponent::MainComponent()
     title = std::make_unique<TitleScreen> (controllers);
     addAndMakeVisible (*title);
     title->onStart = [this] (const GameConfig& c) { startMatch (c); };
+    title->onMasterLevel = [this] (float l) { soundEngine.setMasterLevel (l); };
+    title->setMasterLevel (soundEngine.getMasterLevel());
 
     // On-screen master volume (shown once a match starts; see startMatch).
     masterSlider.setSliderStyle (juce::Slider::LinearHorizontal);
@@ -66,6 +68,9 @@ void MainComponent::startMatch (const GameConfig& config)
         engines[(size_t) i] = doomHost.audioEngine (i);
     soundEngine.setEngines (engines);
 
+    // Reflect the lobby-set level on the in-game slider.
+    masterSlider.setValue (soundEngine.getMasterLevel() * 100.0, juce::dontSendNotification);
+
     controllers.reset();
     kbDown.clear();
 
@@ -116,6 +121,7 @@ void MainComponent::returnToMenu()
     masterSlider.setVisible (false);
     if (title != nullptr)
     {
+        title->setMasterLevel (soundEngine.getMasterLevel());   // reflect in-game changes
         title->setVisible (true);
         title->toFront (false);
         if (isShowing())

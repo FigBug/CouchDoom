@@ -93,9 +93,20 @@ void TitleScreen::changeValue (int dir)
         case rowFrags:
             config.fragLimit = juce::jlimit (0, 50, config.fragLimit + dir * 5);
             break;
+        case rowVolume:
+            volumePct = juce::jlimit (0, 100, volumePct + dir * 5);
+            if (onMasterLevel)
+                onMasterLevel ((float) volumePct / 100.0f);
+            break;
         default:
             break;
     }
+}
+
+void TitleScreen::setMasterLevel (float level)
+{
+    volumePct = juce::jlimit (0, 100, juce::roundToInt (level * 100.0f));
+    repaint();
 }
 
 void TitleScreen::activate()
@@ -176,6 +187,7 @@ juce::String TitleScreen::rowLabel (int row) const
         case rowSkill:    return "Skill";
         case rowMonsters: return "Monsters";
         case rowFrags:    return "Frag Limit";
+        case rowVolume:   return "Volume";
         default:          return {};
     }
 }
@@ -189,6 +201,7 @@ juce::String TitleScreen::rowValue (int row) const
         case rowSkill:    return config.skillName();
         case rowMonsters: return config.monsters ? "On" : "Off";
         case rowFrags:    return config.fragLimitName();
+        case rowVolume:   return juce::String (volumePct) + "%";
         default:          return {};
     }
 }

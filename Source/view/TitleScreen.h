@@ -26,6 +26,13 @@ public:
     // Fired when the user starts the match, carrying the chosen settings.
     std::function<void (const GameConfig&)> onStart;
 
+    // Fired when the master volume row changes (0..1).
+    std::function<void (float)> onMasterLevel;
+
+    // Set the volume shown by the master-volume row (0..1); keeps the lobby in
+    // sync with the in-game slider / current output level.
+    void setMasterLevel (float level);
+
     // Per-frame update: repaint live controller state + handle controller nav.
     void tick();
 
@@ -36,11 +43,12 @@ public:
     static juce::Colour playerColour (int player);
 
 private:
-    enum Row { rowMode = 0, rowMap, rowSkill, rowMonsters, rowFrags, rowStart, numRows };
+    enum Row { rowMode = 0, rowMap, rowSkill, rowMonsters, rowFrags, rowVolume, rowStart, numRows };
 
     ControllerRouter& router;
     GameConfig        config;
     int               selected = rowStart;
+    int               volumePct = 80;   // master volume 0..100 (mirrors SoundEngine default)
 
     // per-pad previous nav-button state, for edge detection
     std::array<juce::uint32, ControllerRouter::kNumPlayers> prevMask { 0, 0, 0, 0 };
