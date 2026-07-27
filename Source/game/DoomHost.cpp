@@ -44,7 +44,8 @@ bool DoomHost::quitRequested() const
     return Couch_QuitRequested() != 0;
 }
 
-void DoomHost::start (const juce::File& wad, const GameConfig& config)
+void DoomHost::start (const juce::File& wad, const GameConfig& config,
+                      const std::array<bool, kNumPlayers>& isBot)
 {
     if (running)
         return;
@@ -59,7 +60,8 @@ void DoomHost::start (const juce::File& wad, const GameConfig& config)
         instances[(size_t) i]->startGame (wad, /*playerIndex*/ i,
                                           /*numPlayers*/ kNumPlayers,
                                           /*playMusic*/ i == 0,
-                                          setup);
+                                          setup,
+                                          /*isBot*/ isBot[(size_t) i]);
     running = true;
 }
 

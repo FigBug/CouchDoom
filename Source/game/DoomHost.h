@@ -25,8 +25,10 @@ public:
     DoomHost();
     ~DoomHost();
 
-    // Launch the four instances for one session with the given match settings.
-    void start (const juce::File& wad, const GameConfig& config);
+    // Launch the four instances for one session. isBot[i] makes slot i an AI
+    // player (a slot with no human controller).
+    void start (const juce::File& wad, const GameConfig& config,
+                const std::array<bool, kNumPlayers>& isBot);
 
     // Tear the current session down and recreate fresh instances, ready for the
     // next start() (used to return to the menu).

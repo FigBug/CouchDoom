@@ -61,7 +61,13 @@ juce::File MainComponent::extractWad()
 //==============================================================================
 void MainComponent::startMatch (const GameConfig& config)
 {
-    doomHost.start (wad, config);
+    // Slots without a human are AI bots. Slot 0 is always human (keyboard, or a
+    // controller if present); slots 1-3 are bots unless a controller is plugged in.
+    std::array<bool, DoomHost::kNumPlayers> isBot {};
+    for (int i = 0; i < DoomHost::count(); ++i)
+        isBot[(size_t) i] = (i != 0) && ! controllers.connected (i);
+
+    doomHost.start (wad, config, isBot);
 
     std::array<gin::DoomAudioEngine*, DoomHost::kNumPlayers> engines {};
     for (int i = 0; i < DoomHost::count(); ++i)
