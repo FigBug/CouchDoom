@@ -2,15 +2,13 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "game/DoomHost.h"
+#include "audio/SoundEngine.h"
+
 //==============================================================================
-// Top-level component for CouchDoom.
-//
-// This is the shell of the app: a 60 Hz driver that will own the four Doom
-// instances (via game::DoomHost), the fake-network arbiter that keeps them in
-// lockstep, the audio mixer that sums their four output streams, and the
-// gamepad manager that feeds per-instance input. Those subsystems are wired in
-// as they are built (see README.md for the phased plan); for now this is a
-// placeholder window so the project configures, builds and runs.
+// Top-level component: a 60 Hz driver that owns the Doom instances (DoomHost),
+// mixes their audio (SoundEngine), and draws their framebuffers into a 2x2
+// grid. The fake-network arbiter and controller input are layered on next.
 //==============================================================================
 class MainComponent : public juce::Component,
                       private juce::Timer
@@ -24,13 +22,19 @@ public:
 
 private:
     void timerCallback() override;
+    juce::File extractWad();
 
-    static constexpr int kTickHz       = 60;
-    static constexpr int kDoomWidth    = 640;   // doomgeneric framebuffer size
-    static constexpr int kDoomHeight   = 400;
-    static constexpr int kNumInstances = 4;     // 2x2 split-screen deathmatch
+    static constexpr int kTickHz     = 60;
+    static constexpr int kDoomWidth  = 640;   // doomgeneric framebuffer size
+    static constexpr int kDoomHeight = 400;
+
+    // TEMP: run a single instance until the WAD subsystem is per-instance
+    // (see DoomHost::start). Flip to DoomHost::count() for the full 2x2.
+    static constexpr int kActivePlayers = 1;
 
     juce::ScopedLowPowerModeDisabler keepAwake;
+    DoomHost                         doomHost;
+    SoundEngine                      soundEngine;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

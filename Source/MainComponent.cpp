@@ -1,12 +1,20 @@
 #include "MainComponent.h"
 
+#include "BinaryData.h"
+
 //==============================================================================
 MainComponent::MainComponent()
 {
     setWantsKeyboardFocus (true);
+    setSize (kDoomWidth * 2, kDoomHeight * 2);   // 2x2 of 640x400
 
-    // 2x2 grid of 640x400 Doom framebuffers.
-    setSize (kDoomWidth * 2, kDoomHeight * 2);
+    auto wad = extractWad();
+    doomHost.start (wad, kActivePlayers);
+
+    std::array<gin::DoomAudioEngine*, DoomHost::kNumPlayers> engines {};
+    for (int i = 0; i < DoomHost::count(); ++i)
+        engines[(size_t) i] = doomHost.audioEngine (i);
+    soundEngine.setEngines (engines);
 
     startTimerHz (kTickHz);
 }
@@ -17,33 +25,57 @@ MainComponent::~MainComponent()
 }
 
 //==============================================================================
+juce::File MainComponent::extractWad()
+{
+    // Bake-once, extract-to-disk: all instances load the same file.
+    auto dir = juce::File::getSpecialLocation (juce::File::tempDirectory)
+                   .getChildFile ("CouchDoom");
+    dir.createDirectory();
+
+    auto wad = dir.getChildFile ("DOOM1.WAD");
+
+    if (! wad.existsAsFile() || wad.getSize() != (juce::int64) BinaryData::DOOM1_WADSize)
+        wad.replaceWithData (BinaryData::DOOM1_WAD, (size_t) BinaryData::DOOM1_WADSize);
+
+    return wad;
+}
+
+//==============================================================================
 void MainComponent::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colours::black);
 
-    g.setColour (juce::Colours::grey);
-    g.drawRect (getLocalBounds(), 1);
+    const auto full = getLocalBounds();
+    const int  w    = full.getWidth()  / 2;
+    const int  h    = full.getHeight() / 2;
 
-    // Placeholder quadrant guides (2x2) until the Doom views are wired in.
-    g.drawLine ((float) getWidth() / 2.0f, 0.0f,
-                (float) getWidth() / 2.0f, (float) getHeight());
-    g.drawLine (0.0f, (float) getHeight() / 2.0f,
-                (float) getWidth(), (float) getHeight() / 2.0f);
+    const juce::Rectangle<int> quads[DoomHost::kNumPlayers] =
+    {
+        { 0, 0, w,                  h },
+        { w, 0, full.getWidth() - w, h },
+        { 0, h, w,                  full.getHeight() - h },
+        { w, h, full.getWidth() - w, full.getHeight() - h },
+    };
 
-    g.setColour (juce::Colours::white);
-    g.setFont (juce::Font (juce::FontOptions (20.0f)));
-    g.drawText ("CouchDoom \xe2\x80\x94 4-instance deathmatch (scaffold)",
-                getLocalBounds(), juce::Justification::centred);
+    for (int i = 0; i < DoomHost::count(); ++i)
+    {
+        auto img = doomHost.getScreen (i);
+        if (img.isValid())
+            g.drawImage (img, quads[i].toFloat());
+
+        g.setColour (juce::Colours::darkgrey);
+        g.drawRect (quads[i]);
+    }
 }
 
 void MainComponent::resized()
 {
-    // Child Doom views will be laid out here into the 2x2 grid.
 }
 
 //==============================================================================
 void MainComponent::timerCallback()
 {
-    // The game loop lives here: pump the fake-network arbiter, then repaint.
+    // Game loop: the fake-network arbiter tick will run here; for now just
+    // present the latest framebuffers.
     repaint();
 }

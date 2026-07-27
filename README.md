@@ -79,14 +79,19 @@ CouchDoom/
 ## Status / plan
 
 - [x] **Phase 0** — Project scaffold (build, submodules, app shell).
-- [x] Blocker resolved upstream: `ticdata` moved into `data_t` (`Gin_Doom`).
-- [ ] **Phase 1 — Gin_Doom**: extend `gin::Doom` to accept per-instance config
-      (player index, deathmatch) and expose the tic-exchange seam
-      (`D_ReceiveTic` + read-local-cmd) so the arbiter can drive it.
-- [ ] **Phase 2 — DoomHost + NetArbiter**: create 4 instances, run the lockstep
-      tic exchange, render the 2×2 grid.
-- [ ] **Phase 3 — Controllers**: 4 gamepads → per-instance input.
-- [ ] **Phase 4 — Audio**: mix the 4 engines; instance 0 music, 1–3 SFX only.
+- [x] `ticdata` moved into `data_t` (`Gin_Doom` `101fd24`) — enables >1 sim.
+- [x] **App shell** — `DoomHost` (owns the instances), `SoundEngine` (mixes the
+      engines, player 0 music via `gin::Doom` `playMusic`), `MainComponent`
+      (2×2 grid render, WAD extract). Runs **1 instance today**.
+- [ ] **Blocker for 4 instances — de-globalize the WAD**: `w_wad.c` still keeps
+      `lumpinfo`/`numlumps`/`lumphash` as globals, so four instances loading
+      the IWAD would race/duplicate the lump directory. Move them into `data_t`
+      (same treatment as `ticdata`) — a large sweep, since most `W_*` callers
+      don't take `data_t` yet. Then set `MainComponent::kActivePlayers = 4`.
+- [ ] **Fake-net arbiter**: per-instance deathmatch config + the lockstep tic
+      exchange via `D_ReceiveTic` (see "tic exchange" above).
+- [ ] **Controllers**: 4 gamepads → per-instance input.
+- [ ] **Audio**: already sums all engines; verify balance once 4 run.
 
 ## Build
 
