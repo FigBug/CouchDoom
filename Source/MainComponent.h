@@ -28,9 +28,9 @@ private:
     static constexpr int kDoomWidth  = 640;   // doomgeneric framebuffer size
     static constexpr int kDoomHeight = 400;
 
-    // TEMP: run a single instance until the WAD subsystem is per-instance
-    // (see DoomHost::start). Flip to DoomHost::count() for the full 2x2.
-    static constexpr int kActivePlayers = 1;
+    // Full 2x2: four instances run and render concurrently. (Set to 1 to
+    // debug a single instance.)
+    static constexpr int kActivePlayers = DoomHost::count();
 
     juce::ScopedLowPowerModeDisabler keepAwake;
     DoomHost                         doomHost;

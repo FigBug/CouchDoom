@@ -83,20 +83,23 @@ CouchDoom/
 - [x] **App shell** — `DoomHost` (owns the instances), `SoundEngine` (mixes the
       engines, player 0 music via `gin::Doom` `playMusic`), `MainComponent`
       (2×2 grid render, WAD extract). Runs **1 instance today**.
-- [x] **De-globalized the WAD** (`w_wad.c` lumpinfo/numlumps/lumphash → `data_t`,
-      ~200 `W_*` sites) and the **zone heap** (`z_zone.c` mainzone → `data_t`).
-      Verified: 1 instance inits fully & cleanly; 4 instances now get past WAD
-      load + zone allocation into `R_Init` (Gin_Doom `5a97760`).
-- [ ] **Next blocker — renderer sprite/texture globals**: at 4 instances,
-      `R_InitSprites` races on shared sprite tables (`sprtemp`/`sprites`/
-      `numspritelumps` in `r_things.c`, texture tables in `r_data.c`) →
-      "multip rot" / "invalid sprite frame". Same `data_t` treatment. This is
-      a *chain* — expect a few more init-path globals after this. Then
-      `kActivePlayers = 4`.
+- [x] **Four instances run and render concurrently** (2×2, title demos), stable
+      for 50s+ through level loads and music changes. Getting there meant
+      de-globalizing a *chain* of shared state into `data_t` (all in Gin_Doom):
+    - WAD directory (`lumpinfo`/`numlumps`/`lumphash`, ~200 `W_*` sites)
+    - zone heap (`mainzone`)
+    - sprite-def tables (`sprites`/`sprtemp`/`spritename`)
+    - checksum scratch (`open_wadfiles`, made local)
+    - sfx/music tables (`S_sfx`/`S_music` → per-instance copies)
+    - render column/span function pointers (`colfunc`/`fuzzcolfunc`/… — a
+      shadow-sprite `colfunc` swap was the last, subtlest race)
+- [ ] **Gameplay races**: the title demos exercise a lot, but a real deathmatch
+      (monsters, more sfx, colored players) may surface a few more shared
+      globals. Fix as they appear.
 - [ ] **Fake-net arbiter**: per-instance deathmatch config + the lockstep tic
       exchange via `D_ReceiveTic` (see "tic exchange" above).
 - [ ] **Controllers**: 4 gamepads → per-instance input.
-- [ ] **Audio**: already sums all engines; verify balance once 4 run.
+- [ ] **Audio**: sums all engines (instance 0 music); verify balance.
 
 ## Build
 
