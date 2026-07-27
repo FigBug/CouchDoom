@@ -21,7 +21,7 @@ void SoundEngine::Mixer::getNextAudioBlock (const juce::AudioSourceChannelInfo& 
         if (e != nullptr)
             e->processBlock (view, (int) sr);
 
-    view.applyGain (masterGain);
+    view.applyGain (masterGain.load());
 }
 
 //==============================================================================
@@ -43,4 +43,9 @@ void SoundEngine::setEngines (std::array<gin::DoomAudioEngine*, kNumPlayers> eng
 {
     juce::ScopedLock sl (mixer.lock);
     mixer.engines = engines;
+}
+
+void SoundEngine::setMasterLevel (float level)
+{
+    mixer.masterGain.store (juce::jlimit (0.0f, 1.0f, level));
 }

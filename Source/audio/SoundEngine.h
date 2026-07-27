@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_utils/juce_audio_utils.h>
@@ -23,6 +24,12 @@ public:
     // Point the mixer at the four instances' engines (owned by DoomHost).
     void setEngines (std::array<gin::DoomAudioEngine*, kNumPlayers> engines);
 
+    // Master output level (0..1), driven by the on-screen volume control.
+    void  setMasterLevel (float level);
+    float getMasterLevel() const { return mixer.masterGain.load(); }
+
+    static constexpr float kDefaultMasterLevel = 0.8f;
+
 private:
     struct Mixer : public juce::AudioSource
     {
@@ -33,7 +40,7 @@ private:
         juce::CriticalSection lock;
         std::array<gin::DoomAudioEngine*, kNumPlayers> engines { nullptr, nullptr, nullptr, nullptr };
         double sr        = 44100.0;
-        float  masterGain = 0.8f;
+        std::atomic<float> masterGain { kDefaultMasterLevel };
     };
 
     juce::AudioDeviceManager deviceManager;
