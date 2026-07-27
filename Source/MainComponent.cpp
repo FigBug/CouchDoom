@@ -100,6 +100,11 @@ void MainComponent::routeKeyboardToPlayer0()
     if (KP::isKeyCurrentlyDown ('E'))                                          now.insert (dk::USE);
     if (mod.isShiftDown())                                                     now.insert (dk::RSHIFT);
     if (KP::isKeyCurrentlyDown (KP::escapeKey))                                now.insert (dk::ESCAPE);
+    // Menu keys: select / back / yes / no.
+    if (KP::isKeyCurrentlyDown (KP::returnKey))                                now.insert (dk::ENTER);
+    if (KP::isKeyCurrentlyDown (KP::backspaceKey))                             now.insert (dk::BACKSPACE);
+    if (KP::isKeyCurrentlyDown ('Y'))                                          now.insert ('y');
+    if (KP::isKeyCurrentlyDown ('N'))                                          now.insert ('n');
     for (int w = '1'; w <= '7'; ++w)
         if (KP::isKeyCurrentlyDown (w))                                        now.insert (w);
 

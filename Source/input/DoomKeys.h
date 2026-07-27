@@ -16,6 +16,8 @@ namespace dk
     constexpr int USE        = 0xa2;   // use / open
     constexpr int FIRE       = 0xa3;   // fire
     constexpr int RSHIFT     = 0xb6;   // run / speed
-    constexpr int ESCAPE     = 27;     // menu
-    constexpr int ENTER      = 13;     // confirm
+    constexpr int ESCAPE     = 27;     // menu (key_menu_activate)
+    constexpr int ENTER      = 13;     // menu select (key_menu_forward)
+    constexpr int BACKSPACE  = 0x7f;   // menu back (key_menu_back)
+    // Menu yes/no dialogs use the plain ASCII 'y'/'n' (key_menu_confirm/abort).
 }
