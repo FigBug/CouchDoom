@@ -16,21 +16,6 @@ MainComponent::MainComponent()
     title->onMasterLevel = [this] (float l) { soundEngine.setMasterLevel (l); };
     title->setMasterLevel (soundEngine.getMasterLevel());
 
-    // On-screen master volume (shown once a match starts; see startMatch).
-    masterSlider.setSliderStyle (juce::Slider::LinearHorizontal);
-    masterSlider.setRange (0.0, 100.0, 1.0);
-    masterSlider.setValue (SoundEngine::kDefaultMasterLevel * 100.0, juce::dontSendNotification);
-    masterSlider.setTextValueSuffix ("%");
-    masterSlider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 52, 22);
-    masterSlider.setColour (juce::Slider::textBoxTextColourId, juce::Colours::white);
-    masterSlider.setColour (juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
-    masterSlider.setColour (juce::Slider::trackColourId, juce::Colour (0xffce2b1a));
-    masterSlider.setColour (juce::Slider::thumbColourId, juce::Colours::white);
-    masterSlider.setWantsKeyboardFocus (false);   // don't steal player-0 keys
-    masterSlider.onValueChange = [this]
-        { soundEngine.setMasterLevel ((float) (masterSlider.getValue() / 100.0)); };
-    addChildComponent (masterSlider);
-
     // Size last, so the resized() it triggers lays out the (now-created) title.
     setSize (kDoomWidth * 2, kDoomHeight * 2);   // 2x2 of 640x400
 
@@ -74,16 +59,12 @@ void MainComponent::startMatch (const GameConfig& config)
         engines[(size_t) i] = doomHost.audioEngine (i);
     soundEngine.setEngines (engines);
 
-    // Reflect the lobby-set level on the in-game slider.
-    masterSlider.setValue (soundEngine.getMasterLevel() * 100.0, juce::dontSendNotification);
-
     controllers.reset();
     kbDown.clear();
 
     state = State::Playing;
     if (title != nullptr)
         title->setVisible (false);
-    masterSlider.setVisible (true);
     if (isShowing())
         grabKeyboardFocus();
     repaint();
@@ -129,10 +110,9 @@ void MainComponent::returnToMenu()
 
     kbDown.clear();
     state = State::Title;
-    masterSlider.setVisible (false);
     if (title != nullptr)
     {
-        title->setMasterLevel (soundEngine.getMasterLevel());   // reflect in-game changes
+        title->setMasterLevel (soundEngine.getMasterLevel());
         title->setVisible (true);
         title->toFront (false);
         if (isShowing())
@@ -195,26 +175,10 @@ void MainComponent::paint (juce::Graphics& g)
         g.setColour (juce::Colours::darkgrey);
         g.drawRect (quads[i]);
     }
-
-    // Master-volume backdrop + label, drawn behind the slider child.
-    const auto sb    = masterSlider.getBounds();
-    const auto panel = sb.expanded (10, 8).withLeft (sb.getX() - 82);
-    g.setColour (juce::Colours::black.withAlpha (0.45f));
-    g.fillRoundedRectangle (panel.toFloat(), 6.0f);
-    g.setColour (juce::Colours::white.withAlpha (0.85f));
-    g.setFont (juce::Font (juce::FontOptions (13.0f).withStyle ("Bold")));
-    g.drawText ("VOLUME", panel.getX() + 10, panel.getY(),
-                sb.getX() - panel.getX() - 16, panel.getHeight(),
-                juce::Justification::centredLeft);
 }
 
 void MainComponent::resized()
 {
     if (title != nullptr)
         title->setBounds (getLocalBounds());
-
-    // Compact master-volume control in the bottom-right corner.
-    const int w = 240, h = 26, margin = 14;
-    masterSlider.setBounds (getWidth()  - margin - w,
-                            getHeight() - margin - h, w, h);
 }

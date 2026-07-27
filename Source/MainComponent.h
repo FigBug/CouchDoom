@@ -51,7 +51,6 @@ private:
     DoomHost                         doomHost;
     SoundEngine                      soundEngine;
     std::unique_ptr<TitleScreen>     title;
-    juce::Slider                     masterSlider;   // on-screen master volume
     juce::File                       wad;
 
     std::set<int> kbDown;   // Doom keys currently held on the keyboard (player 0)
