@@ -24,6 +24,8 @@ void ControllerRouter::reset()
     for (auto& s : down)   s.clear();
     for (auto& b : prevLB) b = false;
     for (auto& b : prevRB) b = false;
+    for (auto& w : weaponKey)  w = 0;
+    for (auto& w : weaponHold) w = 0;
 }
 
 void ControllerRouter::route (DoomHost& host)
@@ -35,6 +37,16 @@ void ControllerRouter::route (DoomHost& host)
         const auto i = (size_t) p;
         auto* c = pad (p);
         std::set<int> now;
+
+        // Release a held weapon key once its hold expires. The game reads
+        // weapon keys by polling gamekeydown[] when it builds the ticcmd, and
+        // it drains all queued events first - so a same-frame down+up cancels
+        // out. Holding the key down a few frames guarantees it spans a tic.
+        if (weaponHold[i] > 0 && --weaponHold[i] == 0 && weaponKey[i] != 0)
+        {
+            host.postKey (p, weaponKey[i], false);
+            weaponKey[i] = 0;
+        }
 
         if (c != nullptr && c->isConnected())
         {
@@ -62,15 +74,20 @@ void ControllerRouter::route (DoomHost& host)
             // previous. cycleWeaponKey skips weapons the player doesn't have.
             const bool lb = b (Button::leftShoulder);
             const bool rb = b (Button::rightShoulder);
-            if (rb && ! prevRB[i])
+            const bool bump = (rb && ! prevRB[i]) || (lb && ! prevLB[i]);
+            if (bump)
             {
-                int k = host.cycleWeaponKey (p, true);
-                if (k) { host.postKey (p, k, true); host.postKey (p, k, false); }
-            }
-            if (lb && ! prevLB[i])
-            {
-                int k = host.cycleWeaponKey (p, false);
-                if (k) { host.postKey (p, k, true); host.postKey (p, k, false); }
+                // Release any still-held weapon key, then press the new one and
+                // hold it for a few frames (see the release logic above).
+                if (weaponKey[i]) { host.postKey (p, weaponKey[i], false); weaponKey[i] = 0; }
+
+                int k = host.cycleWeaponKey (p, rb && ! prevRB[i]);
+                if (k)
+                {
+                    host.postKey (p, k, true);
+                    weaponKey[i]  = k;
+                    weaponHold[i] = 6;   // ~100ms at 60Hz, comfortably spans a game tic
+                }
             }
             prevLB[i] = lb;
             prevRB[i] = rb;
