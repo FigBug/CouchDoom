@@ -14,7 +14,7 @@ MainComponent::MainComponent()
     addAndMakeVisible (*title);
     title->onStart = [this] (const GameConfig& c) { startMatch (c); };
     title->onMasterLevel = [this] (float l) { soundEngine.setMasterLevel (l); };
-    title->setMasterLevel (soundEngine.getMasterLevel());
+    soundEngine.setMasterLevel (title->getMasterLevel());   // apply the saved lobby volume
 
     // Size last, so the resized() it triggers lays out the (now-created) title.
     setSize (kDoomWidth * 2, kDoomHeight * 2);   // 2x2 of 640x400

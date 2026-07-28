@@ -29,9 +29,9 @@ public:
     // Fired when the master volume row changes (0..1).
     std::function<void (float)> onMasterLevel;
 
-    // Set the volume shown by the master-volume row (0..1); keeps the lobby in
-    // sync with the in-game slider / current output level.
-    void setMasterLevel (float level);
+    // Set/get the master volume shown by the menu row (0..1).
+    void  setMasterLevel (float level);
+    float getMasterLevel() const { return (float) volumePct / 100.0f; }
 
     // Per-frame update: repaint live controller state + handle controller nav.
     void tick();
@@ -57,6 +57,9 @@ private:
     void changeValue   (int dir);
     void activate();                 // A / Enter on the selected row
     void launch();
+
+    void loadSettings();             // restore options from the settings file
+    void saveSettings() const;       // persist options between runs
 
     juce::String rowLabel (int row) const;
     juce::String rowValue (int row) const;

@@ -16,12 +16,47 @@ namespace
     {
         return juce::jmax (280, content.getWidth() * 34 / 100);
     }
+
+    // The settings file the lobby options persist to (per-user app data).
+    std::unique_ptr<juce::PropertiesFile> settingsFile()
+    {
+        juce::PropertiesFile::Options o;
+        o.applicationName     = "CouchDoom";
+        o.filenameSuffix      = "settings";
+        o.folderName          = "CouchDoom";
+        o.osxLibrarySubFolder = "Application Support";
+        return std::make_unique<juce::PropertiesFile> (o);
+    }
 }
 
 //==============================================================================
 TitleScreen::TitleScreen (ControllerRouter& r) : router (r)
 {
     setWantsKeyboardFocus (true);
+    loadSettings();
+}
+
+void TitleScreen::loadSettings()
+{
+    auto p = settingsFile();
+    config.mode      = (GameConfig::Mode) juce::jlimit (0, 2, p->getIntValue ("mode",  (int) config.mode));
+    config.map       = juce::jlimit (1, 9,  p->getIntValue ("map",       config.map));
+    config.skill     = juce::jlimit (1, 5,  p->getIntValue ("skill",     config.skill));
+    config.monsters  = p->getBoolValue ("monsters", config.monsters);
+    config.fragLimit = juce::jlimit (0, 50, p->getIntValue ("fragLimit", config.fragLimit));
+    volumePct        = juce::jlimit (0, 100, p->getIntValue ("volume",   volumePct));
+}
+
+void TitleScreen::saveSettings() const
+{
+    auto p = settingsFile();
+    p->setValue ("mode",      (int) config.mode);
+    p->setValue ("map",       config.map);
+    p->setValue ("skill",     config.skill);
+    p->setValue ("monsters",  config.monsters);
+    p->setValue ("fragLimit", config.fragLimit);
+    p->setValue ("volume",    volumePct);
+    p->saveIfNeeded();
 }
 
 juce::Colour TitleScreen::playerColour (int player)
@@ -101,6 +136,8 @@ void TitleScreen::changeValue (int dir)
         default:
             break;
     }
+
+    saveSettings();   // persist the lobby options between runs
 }
 
 void TitleScreen::setMasterLevel (float level)
