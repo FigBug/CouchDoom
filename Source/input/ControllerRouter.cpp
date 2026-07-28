@@ -66,7 +66,9 @@ void ControllerRouter::route (DoomHost& host)
             if (rx >  dead || b (Button::dpadRight)) now.insert (dk::RIGHTARROW);
 
             if (b (Button::rightTrigger))            now.insert (dk::FIRE);
-            if (b (Button::faceDown))                now.insert (dk::USE);    // A
+            if (b (Button::faceLeft))                now.insert (dk::FIRE);   // X: fire
+            if (b (Button::faceDown))                now.insert (dk::USE);    // A: use / open
+            if (b (Button::faceUp))                  now.insert (dk::TAB);    // Y: automap
             if (b (Button::leftTrigger))             now.insert (dk::RSHIFT); // run
             if (b (Button::start))                   now.insert (dk::ESCAPE);
 
