@@ -31,6 +31,12 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    // Game input is read by polling (isKeyCurrentlyDown), so consume key events
+    // here to stop the OS "unhandled key" beep. As the ancestor of TitleScreen
+    // this also swallows keys the lobby menu doesn't use.
+    bool keyPressed (const juce::KeyPress&) override    { return true; }
+    bool keyStateChanged (bool /*isKeyDown*/) override  { return true; }
+
 private:
     enum class State { Title, Playing };
 
