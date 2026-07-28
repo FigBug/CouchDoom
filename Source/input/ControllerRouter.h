@@ -40,7 +40,6 @@ private:
     std::array<std::set<int>, kNumPlayers> down;               // Doom keys held
     std::array<bool, kNumPlayers>          prevLB { false, false, false, false };
     std::array<bool, kNumPlayers>          prevRB { false, false, false, false };
-    std::array<int,  kNumPlayers>          weapon { 1, 1, 1, 1 };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ControllerRouter)
 };

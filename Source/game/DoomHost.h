@@ -50,6 +50,9 @@ public:
     // keyboard). Ignored if no session is running.
     void postKey (int player, int key, bool down);
 
+    // Number key to select that player's next/previous owned weapon (0 = none).
+    int cycleWeaponKey (int player, bool forward);
+
     static constexpr int count() { return kNumPlayers; }
 
 private:

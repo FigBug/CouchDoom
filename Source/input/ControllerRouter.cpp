@@ -24,7 +24,6 @@ void ControllerRouter::reset()
     for (auto& s : down)   s.clear();
     for (auto& b : prevLB) b = false;
     for (auto& b : prevRB) b = false;
-    for (auto& w : weapon) w = 1;
 }
 
 void ControllerRouter::route (DoomHost& host)
@@ -59,20 +58,19 @@ void ControllerRouter::route (DoomHost& host)
             if (b (Button::leftTrigger))             now.insert (dk::RSHIFT); // run
             if (b (Button::start))                   now.insert (dk::ESCAPE);
 
-            // Weapon cycle on bumper rising edge (momentary down+up tap).
+            // Weapon cycle on bumper rising edge: RB = next owned weapon, LB =
+            // previous. cycleWeaponKey skips weapons the player doesn't have.
             const bool lb = b (Button::leftShoulder);
             const bool rb = b (Button::rightShoulder);
             if (rb && ! prevRB[i])
             {
-                weapon[i] = weapon[i] % 7 + 1;
-                host.postKey (p, '0' + weapon[i], true);
-                host.postKey (p, '0' + weapon[i], false);
+                int k = host.cycleWeaponKey (p, true);
+                if (k) { host.postKey (p, k, true); host.postKey (p, k, false); }
             }
             if (lb && ! prevLB[i])
             {
-                weapon[i] = (weapon[i] + 5) % 7 + 1;
-                host.postKey (p, '0' + weapon[i], true);
-                host.postKey (p, '0' + weapon[i], false);
+                int k = host.cycleWeaponKey (p, false);
+                if (k) { host.postKey (p, k, true); host.postKey (p, k, false); }
             }
             prevLB[i] = lb;
             prevRB[i] = rb;

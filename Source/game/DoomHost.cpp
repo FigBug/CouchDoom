@@ -82,3 +82,10 @@ void DoomHost::postKey (int player, int key, bool down)
     if (running && juce::isPositiveAndBelow (player, kNumPlayers))
         instances[(size_t) player]->addEvent (key, down);
 }
+
+int DoomHost::cycleWeaponKey (int player, bool forward)
+{
+    if (running && juce::isPositiveAndBelow (player, kNumPlayers))
+        return instances[(size_t) player]->cycleWeaponKey (forward);
+    return 0;
+}
