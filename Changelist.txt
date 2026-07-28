@@ -1,2 +1,2 @@
-0.0.1:
-  - Initial project scaffold. 4-instance CouchDoom deathmatch.
+1.0.0:
+  - Initial version.
