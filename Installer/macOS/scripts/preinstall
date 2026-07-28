@@ -1,0 +1,4 @@
+#!/bin/sh
+# Remove any prior install so the new bundle takes its place cleanly.
+rm -Rf "/Applications/CouchDoom.app"
+exit 0

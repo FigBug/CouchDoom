@@ -1,0 +1,4 @@
+CouchDoom by SocaLabs
+=====================
+
+This installer places CouchDoom.app in /Applications.

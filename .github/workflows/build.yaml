@@ -17,7 +17,7 @@ jobs:
       matrix:
         include:
           - name: Windows
-            os:  windows-latest
+            os:  windows-2022
           - name: Linux
             os:  ubuntu-latest
           - name: macOS
@@ -41,20 +41,29 @@ jobs:
             binutils zip
         shell: bash
 
-      - name: Build
-        run: ./ci/build.sh
+      - name: Install Inno Setup (Windows)
+        if: matrix.name == 'Windows'
+        run: choco install innosetup --no-progress -y
+        shell: bash
+
+      - name: Build installer
+        run: ./Installer/build.sh
         shell: bash
         env:
-          # macOS signing / notarization (skipped when unset)
+          # macOS signing / notarization
           APPLICATION: ${{ secrets.APPLICATION }}
           INSTALLER:   ${{ secrets.INSTALLER }}
           APPLE_USER:  ${{ secrets.APPLE_USER }}
           APPLE_PASS:  ${{ secrets.APPLE_PASS }}
+          # Windows Trusted Signing (Azure)
+          AZURE_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Binaries ${{ matrix.name }}
-          path: ci/bin/*.zip
+          path: bin/*
           retention-days: 30
