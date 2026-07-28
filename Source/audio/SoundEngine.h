@@ -41,6 +41,7 @@ private:
         std::array<gin::DoomAudioEngine*, kNumPlayers> engines { nullptr, nullptr, nullptr, nullptr };
         double sr        = 44100.0;
         std::atomic<float> masterGain { kDefaultMasterLevel };
+        juce::AudioBuffer<float> sfxTemp;   // per-player SFX, before panning
     };
 
     juce::AudioDeviceManager deviceManager;
